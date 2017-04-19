@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">TeachSmile</string>
+    <string name="facebook_app_id">738110823016523</string>
+    <string name="login_skip"><u>Or, Skip Login</u></string>
 </resources>
