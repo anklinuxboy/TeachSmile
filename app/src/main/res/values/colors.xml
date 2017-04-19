@@ -3,6 +3,6 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="login_screen_background">#CDDC39</color>
-    <color name="skip_text_color">#ffb74d</color>
+    <color name="login_screen_background">#b2dfdb</color>
+    <color name="skip_text_color">#004d40</color>
 </resources>
