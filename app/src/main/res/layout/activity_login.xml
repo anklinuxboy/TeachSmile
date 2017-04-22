@@ -17,6 +17,7 @@
         app:layout_constraintBottom_toBottomOf="parent"/>
 
     <TextView
+        android:id="@+id/login_skip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/skip_text_color"
