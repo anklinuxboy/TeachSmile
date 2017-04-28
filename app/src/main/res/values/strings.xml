@@ -2,4 +2,5 @@
     <string name="app_name">TeachSmile</string>
     <string name="facebook_app_id">738110823016523</string>
     <string name="login_skip"><u>Or, Skip Login</u></string>
+    <string name="fb_login_protocol_scheme">fb738110823016523</string>
 </resources>

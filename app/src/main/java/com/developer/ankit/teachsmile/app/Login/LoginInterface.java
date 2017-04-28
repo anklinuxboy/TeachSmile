@@ -5,4 +5,12 @@ package com.developer.ankit.teachsmile.app.Login;
  */
 
 public interface LoginInterface {
+    interface View {
+        void skipLogin();
+    }
+
+    interface Presenter {
+        void setView(LoginInterface.View view);
+        void skipLoginClicked();
+    }
 }

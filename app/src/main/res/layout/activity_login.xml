@@ -23,8 +23,7 @@
         android:textColor="@color/skip_text_color"
         android:textSize="@dimen/skip_login_text_size"
         android:text="@string/login_skip"
-        android:clickable="true"
-        android:layout_marginTop="@dimen/vertical_default_margin"
+        android:padding="@dimen/vertical_default_margin"
         app:layout_constraintTop_toBottomOf="@+id/login_button"
         app:layout_constraintStart_toStartOf="@+id/login_button"
         app:layout_constraintEnd_toEndOf="@+id/login_button"/>
