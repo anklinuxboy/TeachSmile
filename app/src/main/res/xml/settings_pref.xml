@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:title="@string/emotion_setting"
+        android:key="emotion_selection"
+        android:defaultValue="@string/default_emotion"
+        android:entries="@array/emotions"
+        android:entryValues="@array/emotions"
+        android:summary="%s"/>
+</PreferenceScreen>

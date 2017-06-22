@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -16,6 +17,7 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -28,6 +30,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.developer.ankit.teachsmile.R;
+import com.developer.ankit.teachsmile.app.Settings.SettingsActivity;
 import com.developer.ankit.teachsmile.app.Utils;
 
 import java.io.File;
@@ -38,6 +41,7 @@ import java.util.concurrent.Semaphore;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * Created by ankit on 4/29/17.
@@ -57,6 +61,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     @BindView(R.id.settings)
     ImageButton settingsButton;
 
+    private final String EMOTION_PREF_KEY = "emotion_selection";
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private SurfaceTexture surfaceTexture;
@@ -66,6 +71,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     private ImageReader imageReader;
     private File cameraFile;
     private CameraDevice camera;
+    private String emotionPref;
 
     private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -123,8 +129,14 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     @Override
     protected void onResume() {
+        updateEmotion();
         startBackgroundThread();
         super.onResume();
+    }
+
+    private void updateEmotion() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        emotionPref = pref.getString(EMOTION_PREF_KEY, "");
     }
 
     @Override
@@ -280,5 +292,10 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
                     (long) rhs.getWidth() * rhs.getHeight());
         }
 
+    }
+
+    @OnClick(R.id.settings)
+    public void settingsButtonClicked() {
+        startActivity(SettingsActivity.startSettingsActivity(this));
     }
 }
