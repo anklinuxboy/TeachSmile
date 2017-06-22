@@ -6,9 +6,12 @@ package com.developer.ankit.teachsmile.app.CameraScreen;
 
 public interface CameraScreenInterface {
     interface View {
+        void startCamera();
+        void askPermission();
     }
 
     interface Presenter {
         void setView(CameraScreenInterface.View view);
+        void startCamera();
     }
 }
