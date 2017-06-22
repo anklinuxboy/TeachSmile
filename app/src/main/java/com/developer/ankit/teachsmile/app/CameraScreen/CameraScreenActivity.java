@@ -9,17 +9,17 @@ import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
@@ -38,7 +38,6 @@ import java.util.concurrent.Semaphore;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import timber.log.Timber;
 
 /**
  * Created by ankit on 4/29/17.
@@ -66,6 +65,30 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     private Semaphore cameraOpenCloseLock;
     private ImageReader imageReader;
     private File cameraFile;
+    private CameraDevice camera;
+
+    private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
+        @Override
+        public void onOpened(@NonNull CameraDevice cameraDevice) {
+            cameraOpenCloseLock.release();
+            camera = cameraDevice;
+        }
+
+        @Override
+        public void onDisconnected(@NonNull CameraDevice cameraDevice) {
+            cameraOpenCloseLock.release();
+            cameraDevice.close();
+            camera = null;
+        }
+
+        @Override
+        public void onError(@NonNull CameraDevice cameraDevice, int error) {
+            cameraOpenCloseLock.release();
+            cameraDevice.close();
+            camera = null;
+            finish();
+        }
+    };
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -156,8 +179,13 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     @Override
     public void startCamera() {
+        stateCallbackSetup();
         setupTextureListener();
         fetchCameraData();
+    }
+
+    private void stateCallbackSetup() {
+
     }
 
     private void fetchCameraData() {
@@ -234,7 +262,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
             Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                     new CompareSizesByArea());
             imageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                    ImageFormat.JPEG, 2);
+                    ImageFormat.JPEG, 1);
 
 
 
