@@ -22,11 +22,15 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.Gravity;
 import android.view.Surface;
 import android.view.TextureView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.developer.ankit.teachsmile.R;
@@ -50,6 +54,8 @@ import butterknife.OnClick;
 public class CameraScreenActivity extends Activity implements CameraScreenInterface.View,
                     ActivityCompat.OnRequestPermissionsResultCallback {
 
+    private static final String USER_NAME = "user_name";
+    private static final String USER_LOCATION = "user_location";
     @BindView(R.id.camera_view)
     TextureView cameraView;
     @BindView(R.id.take_photo)
@@ -60,6 +66,10 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     ImageButton openProfileButton;
     @BindView(R.id.settings)
     ImageButton settingsButton;
+    @BindView(R.id.drawer_layout)
+    DrawerLayout drawerLayout;
+    @BindView(R.id.side_navigation)
+    ListView sideNavigation;
 
     private final String EMOTION_PREF_KEY = "emotion_selection";
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -105,8 +115,18 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     private CameraScreenPresenter presenter;
 
-    public static Intent startCameraScreen(Context context) {
+    public static Intent startCameraScreen(Context context, String userName, String userLocation) {
         Intent intent = new Intent(context, CameraScreenActivity.class);
+        if (userName == null) {
+            userName = "Not Logged In";
+        }
+
+        if (userLocation == null) {
+            userLocation = "Location Not Determined";
+        }
+
+        intent.putExtra(CameraScreenActivity.USER_NAME, userName);
+        intent.putExtra(CameraScreenActivity.USER_LOCATION, userLocation);
         return intent;
     }
 
@@ -115,10 +135,14 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_screen);
         ButterKnife.bind(this);
+        Intent intent = getIntent();
+        String name = intent.getStringExtra(USER_NAME);
+        String location = intent.getStringExtra(USER_LOCATION);
         presenter = new CameraScreenPresenter();
         presenter.setView(this);
         cameraOpenCloseLock = new Semaphore(1);
-
+        sideNavigation.setAdapter(new ArrayAdapter<String>(this, R.layout.side_navigation_layout,
+                R.id.side_navigation_element, new String[]{name, location}));
     }
 
     @Override
@@ -297,5 +321,10 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     @OnClick(R.id.settings)
     public void settingsButtonClicked() {
         startActivity(SettingsActivity.startSettingsActivity(this));
+    }
+
+    @OnClick(R.id.open_profile)
+    public void profileButtonClicked() {
+        drawerLayout.openDrawer(Gravity.START);
     }
 }

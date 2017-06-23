@@ -22,6 +22,8 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
@@ -50,7 +52,9 @@ public class LoginActivity extends AppCompatActivity implements LoginInterface.V
     private String LOGIN_PREF_KEY = "loggedIn";
     private FusedLocationProviderClient locationProviderClient;
     private final int LOCATION_PERMISSION = 101;
-    private String userLocation;
+    private String userLocation = null;
+    private ProfileTracker profileTracker;
+    private String userName = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +73,7 @@ public class LoginActivity extends AppCompatActivity implements LoginInterface.V
             public void onSuccess(LoginResult loginResult) {
                 isUserLoggedIn = true;
                 saveLoginState(isUserLoggedIn);
+                startActivity(CameraScreenActivity.startCameraScreen(getBaseContext(), userName, userLocation));
             }
 
             @Override
@@ -82,8 +87,22 @@ public class LoginActivity extends AppCompatActivity implements LoginInterface.V
             }
         });
 
+        profileTracker = new ProfileTracker() {
+            @Override
+            protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                userName = currentProfile.getName();
+                Timber.d(userName);
+            }
+        };
+
         locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         getLastKnownLocation();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        profileTracker.stopTracking();
     }
 
     private void getLastKnownLocation() {
@@ -163,6 +182,6 @@ public class LoginActivity extends AppCompatActivity implements LoginInterface.V
 
     @Override
     public void skipLogin() {
-        startActivity(CameraScreenActivity.startCameraScreen(this));
+        startActivity(CameraScreenActivity.startCameraScreen(this, userName, userLocation));
     }
 }
