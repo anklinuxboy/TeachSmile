@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.developer.ankit.teachsmile">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-feature android:name="android.hardware.camera2.full" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
         android:name=".app.TeachSmileApplication"
@@ -20,6 +24,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".app.CameraScreen.CameraScreenActivity" />
+
         <activity
             android:name="com.facebook.CustomTabActivity"
             android:exported="true">
@@ -30,6 +36,8 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".app.Settings.SettingsActivity" />
     </application>
 
 </manifest>
