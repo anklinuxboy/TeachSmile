@@ -10,10 +10,13 @@ public class LoginPresenter implements LoginInterface.Presenter {
     @Override
     public void setView(LoginInterface.View view) {
         this.view = view;
+        this.view.askLocationPermission();
     }
 
     @Override
     public void skipLoginClicked() {
         view.skipLogin();
     }
+
+
 }

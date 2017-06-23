@@ -7,6 +7,7 @@ package com.developer.ankit.teachsmile.app.Login;
 public interface LoginInterface {
     interface View {
         void skipLogin();
+        void askLocationPermission();
     }
 
     interface Presenter {
