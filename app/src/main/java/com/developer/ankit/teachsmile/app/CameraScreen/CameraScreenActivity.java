@@ -13,6 +13,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,6 +39,9 @@ import com.developer.ankit.teachsmile.app.Settings.SettingsActivity;
 import com.developer.ankit.teachsmile.app.Utils;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -46,6 +50,7 @@ import java.util.concurrent.Semaphore;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import timber.log.Timber;
 
 /**
  * Created by ankit on 4/29/17.
@@ -82,6 +87,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     private File cameraFile;
     private CameraDevice camera;
     private String emotionPref;
+    private int sensorOrientation;
 
     private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -103,6 +109,13 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
             cameraDevice.close();
             camera = null;
             finish();
+        }
+    };
+
+    private final ImageReader.OnImageAvailableListener imageAvailableListener = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(ImageReader imageReader) {
+            backgroundHandler.post(new ImageSaver(imageReader.acquireNextImage(), cameraFile));
         }
     };
 
@@ -148,7 +161,8 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     @Override
     protected void onStart() {
         super.onStart();
-        cameraFile = new File(this.getExternalFilesDir(null), Utils.getFileName());
+        cameraFile = Utils.getFile();
+        Timber.d(cameraFile.getAbsolutePath());
     }
 
     @Override
@@ -190,7 +204,8 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     public void askPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
                 PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA},
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_CAMERA_PERMISSION);
         }
     }
@@ -201,12 +216,13 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         switch (requestCode) {
             case REQUEST_CAMERA_PERMISSION: {
                 if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED
+                        && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                     presenter.startCamera();
                 } else {
                     Toast.makeText(this, getString(R.string.permission_required), Toast.LENGTH_SHORT)
                             .show();
-                    this.onDestroy();
+                    this.finish();
                 }
                 return;
             }
@@ -301,9 +317,44 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
                     ImageFormat.JPEG, 1);
 
 
-
+            int displayRotation = this.getWindowManager().getDefaultDisplay().getRotation();
+            sensorOrientation = cameraCharacteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+            boolean swappedDimension = false;
         } catch (CameraAccessException|NullPointerException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static class ImageSaver implements Runnable {
+        private final Image image;
+        private final File file;
+
+        public ImageSaver(Image image, File file) {
+            this.image = image;
+            this.file = file;
+        }
+
+        @Override
+        public void run() {
+            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            FileOutputStream output = null;
+            try {
+                output = new FileOutputStream(file);
+                output.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                image.close();
+                if (null != output) {
+                    try {
+                        output.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 

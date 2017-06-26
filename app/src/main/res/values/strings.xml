@@ -6,9 +6,9 @@
     <string name="open_photo_gallery">Open Photo Gallery</string>
     <string name="open_profile">Open Profile</string>
     <string name="open_settings">Open Settings</string>
-    <string name="permission_required">Permission is required for this app to function.</string>
+    <string name="permission_required">Camera and Storage permission is required for this app to function.</string>
     <string name="front_facing_required">This app requires a front facing camera to function</string>
     <string name="emotion_setting">Emotion</string>
     <string name="default_emotion">Joy</string>
-    <string name="location_required">Location Permission not given. App will not work fully</string>
+    <string name="location_required">Location Permission not given. App will not work as intended</string>
 </resources>
