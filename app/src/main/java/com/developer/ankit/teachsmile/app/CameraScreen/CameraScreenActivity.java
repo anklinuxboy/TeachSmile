@@ -13,9 +13,14 @@ import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
+import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -28,7 +33,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Gravity;
@@ -84,13 +88,23 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     @BindView(R.id.side_navigation)
     ListView sideNavigation;
 
+    private static final int STATE_PREVIEW = 0;
+
+    private static final int STATE_WAITING_LOCK = 1;
+
+    private static final int STATE_WAITING_PRECAPTURE = 2;
+
+    private static final int STATE_WAITING_NON_PRECAPTURE = 3;
+
+    private static final int STATE_PICTURE_TAKEN = 4;
+
     private final String EMOTION_PREF_KEY = "emotion_selection";
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 200;
     private SurfaceTexture surfaceTexture;
     private HandlerThread backgroundThread;
     private Handler backgroundHandler;
-    private Semaphore cameraOpenCloseLock;
+    private Semaphore cameraOpenCloseLock = new Semaphore(1);
     private ImageReader imageReader;
     private File cameraFile;
     private CameraDevice camera;
@@ -98,6 +112,10 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     private int sensorOrientation;
     private Size previewSize;
     private String frontCameraID;
+    private CaptureRequest.Builder previewRequestBuilder;
+    private CameraCaptureSession captureSession;
+    private CaptureRequest captureRequest;
+    private int state = STATE_PREVIEW;
 
     private static final int MAX_PREVIEW_WIDTH = 1920;
     private static final int MAX_PREVIEW_HEIGHT = 1080;
@@ -106,7 +124,9 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
             cameraOpenCloseLock.release();
+            Timber.d("Camera Opened");
             camera = cameraDevice;
+            createCameraPreviewSession();
         }
 
         @Override
@@ -114,6 +134,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
             cameraOpenCloseLock.release();
             cameraDevice.close();
             camera = null;
+            Timber.d("Camera Disconnected");
         }
 
         @Override
@@ -121,9 +142,136 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
             cameraOpenCloseLock.release();
             cameraDevice.close();
             camera = null;
+            Timber.d("Camera Error");
             finish();
         }
     };
+
+    private CameraCaptureSession.CaptureCallback captureCallback
+            = new CameraCaptureSession.CaptureCallback() {
+
+        private void process(CaptureResult result) {
+            switch (state) {
+                case STATE_PREVIEW: {
+                    break;
+                }
+
+                case STATE_WAITING_LOCK: {
+                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+                    if (afState == null) {
+                        captureStillPicture();
+                    } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState ||
+                            CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState) {
+                        // CONTROL_AE_STATE can be null on some devices
+                        Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                        if (aeState == null ||
+                                aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
+                            state = STATE_PICTURE_TAKEN;
+                            captureStillPicture();
+                        } else {
+                            runPrecaptureSequence();
+                        }
+                    }
+                    break;
+                }
+
+                case STATE_WAITING_PRECAPTURE: {
+                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                    if (aeState == null ||
+                            aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
+                            aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED) {
+                        state = STATE_WAITING_NON_PRECAPTURE;
+                    }
+                    break;
+                }
+
+                case STATE_WAITING_NON_PRECAPTURE: {
+                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                    if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
+                        state = STATE_PICTURE_TAKEN;
+                        captureStillPicture();
+                    }
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
+            process(partialResult);
+            super.onCaptureProgressed(session, request, partialResult);
+        }
+
+        @Override
+        public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+            process(result);
+            super.onCaptureCompleted(session, request, result);
+        }
+    };
+
+    private void runPrecaptureSequence() {
+        try {
+            // This is how to tell the camera to trigger.
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+            // Tell #mCaptureCallback to wait for the precapture sequence to be set.
+            state = STATE_WAITING_PRECAPTURE;
+            captureSession.capture(previewRequestBuilder.build(), captureCallback,
+                    backgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createCameraPreviewSession() {
+        try {
+            SurfaceTexture texture = cameraView.getSurfaceTexture();
+            assert texture != null;
+
+            texture.setDefaultBufferSize(previewSize.getWidth(), previewSize.getHeight());
+
+            Surface surface = new Surface(texture);
+
+            previewRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            previewRequestBuilder.addTarget(surface);
+            List<Surface> surfaces = Arrays.asList(surface, imageReader.getSurface());
+            camera.createCaptureSession(surfaces , new CameraCaptureSession.StateCallback() {
+                        @Override
+                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                            if (null == camera) {
+                                return;
+                            }
+
+                            captureSession = cameraCaptureSession;
+                            try {
+                                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
+                                captureRequest = previewRequestBuilder.build();
+                                captureSession.setRepeatingRequest(captureRequest, captureCallback, backgroundHandler);
+                            } catch (CameraAccessException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                            showToast("Failed");
+                        }
+                    }, backgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showToast(final String text) {
+            this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getBaseContext(), text, Toast.LENGTH_SHORT).show();
+                }
+            });
+    }
 
     private final ImageReader.OnImageAvailableListener imageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
@@ -166,7 +314,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         String location = intent.getStringExtra(USER_LOCATION);
         presenter = new CameraScreenPresenter();
         presenter.setView(this);
-        cameraOpenCloseLock = new Semaphore(1);
         sideNavigation.setAdapter(new ArrayAdapter<String>(this, R.layout.side_navigation_layout,
                 R.id.side_navigation_element, new String[]{name, location}));
     }
@@ -216,6 +363,60 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private void captureStillPicture() {
+        try {
+            if (null == camera) {
+                return;
+            }
+
+            final CaptureRequest.Builder captureBuilder =
+                    camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+            captureBuilder.addTarget(imageReader.getSurface());
+
+            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
+            int rotation = getWindowManager().getDefaultDisplay().getRotation();
+            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
+
+            CameraCaptureSession.CaptureCallback CaptureCallback
+                    = new CameraCaptureSession.CaptureCallback() {
+
+                @Override
+                public void onCaptureCompleted(@NonNull CameraCaptureSession session,
+                                               @NonNull CaptureRequest request,
+                                               @NonNull TotalCaptureResult result) {
+                    showToast("Saved: " + cameraFile);
+                    Timber.d(cameraFile.toString());
+                    unlockFocus();
+                }
+            };
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void unlockFocus() {
+        try {
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
+                    CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+            captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+            state = STATE_PREVIEW;
+            captureSession.setRepeatingRequest(captureRequest, captureCallback, backgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private int getOrientation(int rotation) {
+        // Sensor orientation is 90 for most devices, or 270 for some devices (eg. Nexus 5X)
+        // We have to take that into account and rotate JPEG properly.
+        // For devices with orientation of 90, we simply return our mapping from ORIENTATIONS.
+        // For devices with orientation of 270, we need to rotate the JPEG 180 degrees.
+        return (ORIENTATIONS.get(rotation) + sensorOrientation + 270) % 360;
     }
 
     private final TextureView.SurfaceTextureListener surfaceTextureListener
