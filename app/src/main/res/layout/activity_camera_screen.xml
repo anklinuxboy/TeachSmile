@@ -10,7 +10,7 @@
         android:orientation="vertical" android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextureView
+        <com.developer.ankit.teachsmile.app.CameraScreen.CameraTextureView
             android:id="@+id/camera_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>

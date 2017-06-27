@@ -11,7 +11,7 @@ public class CameraScreenPresenter implements CameraScreenInterface.Presenter {
     @Override
     public void setView(CameraScreenInterface.View view) {
         this.view = view;
-        this.view.startCamera();
+        //this.view.startCamera();
         this.view.askPermission();
     }
 
