@@ -64,10 +64,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import timber.log.Timber;
 
-/**
- * Created by ankit on 4/29/17.
- */
-
 public class CameraScreenActivity extends Activity implements CameraScreenInterface.View,
                     ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -276,7 +272,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     private final ImageReader.OnImageAvailableListener imageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader imageReader) {
-            backgroundHandler.post(new ImageSaver(imageReader.acquireNextImage(), cameraFile));
+            backgroundHandler.post(new ImageSaver(imageReader.acquireLatestImage(), cameraFile));
         }
     };
 
@@ -319,13 +315,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        cameraFile = Utils.getFile();
-        Timber.d(cameraFile.getAbsolutePath());
-    }
-
-    @Override
     protected void onResume() {
         updateEmotion();
         startBackgroundThread();
@@ -344,8 +333,33 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     @Override
     protected void onPause() {
+        closeCamera();
         stopBackgroundThread();
         super.onPause();
+    }
+
+    private void closeCamera() {
+        try {
+            cameraOpenCloseLock.acquire();
+            if (null != captureSession) {
+                captureSession.close();
+                captureSession = null;
+            }
+
+            if (null != camera) {
+                camera.close();
+                camera = null;
+            }
+
+            if (null != imageReader) {
+                imageReader.close();
+                imageReader = null;
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted while trying to lock camera closing ", e);
+        } finally {
+            cameraOpenCloseLock.release();
+        }
     }
 
     private void startBackgroundThread() {
@@ -393,6 +407,9 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
                     unlockFocus();
                 }
             };
+
+            captureSession.stopRepeating();
+            captureSession.capture(captureBuilder.build(), CaptureCallback, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -412,10 +429,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     }
 
     private int getOrientation(int rotation) {
-        // Sensor orientation is 90 for most devices, or 270 for some devices (eg. Nexus 5X)
-        // We have to take that into account and rotate JPEG properly.
-        // For devices with orientation of 90, we simply return our mapping from ORIENTATIONS.
-        // For devices with orientation of 270, we need to rotate the JPEG 180 degrees.
         return (ORIENTATIONS.get(rotation) + sensorOrientation + 270) % 360;
     }
 
@@ -470,55 +483,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
                 return;
             }
         }
-    }
-
-    @Override
-    public void startCamera() {
-        stateCallbackSetup();
-        setupTextureListener();
-        //fetchCameraData();
-    }
-
-    private void stateCallbackSetup() {
-
-    }
-
-    private void fetchCameraData() {
-        CameraManager manager = (CameraManager) getSystemService(CAMERA_SERVICE);
-        try {
-            String cameraID = manager.getCameraIdList()[0];
-            CameraCharacteristics cc = manager.getCameraCharacteristics(cameraID);
-            StreamConfigurationMap configMap = cc.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            Size[] jpegSize = configMap.getOutputSizes(ImageFormat.JPEG);
-            //Log.d("TAG", Utils.getFileName());
-        } catch (CameraAccessException e) {
-
-        }
-    }
-
-    private void setupTextureListener() {
-        cameraView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
-            @Override
-            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-                surfaceTexture = surface;
-                openCamera(width, height);
-            }
-
-            @Override
-            public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
-            }
-
-            @Override
-            public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-                return false;
-            }
-
-            @Override
-            public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
-            }
-        });
     }
 
     private void openCamera(int width, int height) {
@@ -742,5 +706,26 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     @OnClick(R.id.open_profile)
     public void profileButtonClicked() {
         drawerLayout.openDrawer(Gravity.START);
+    }
+
+    @OnClick(R.id.take_photo)
+    public void takePhotoClicked() {
+        cameraFile = Utils.getFile();
+        Timber.d("Got new file " + cameraFile.getAbsolutePath());
+        lockFocus();
+    }
+
+    private void lockFocus() {
+        try {
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
+                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+
+            state = STATE_WAITING_PRECAPTURE;
+            Timber.d("locked focus");
+            captureSession.capture(previewRequestBuilder.build(), captureCallback,
+                    backgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
 }
