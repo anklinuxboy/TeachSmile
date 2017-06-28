@@ -43,6 +43,8 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.affectiva.android.affdex.sdk.detector.CameraDetector;
+import com.affectiva.android.affdex.sdk.detector.Detector;
 import com.developer.ankit.teachsmile.R;
 import com.developer.ankit.teachsmile.app.Settings.SettingsActivity;
 import com.developer.ankit.teachsmile.app.Utils;
@@ -115,6 +117,10 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     private static final int MAX_PREVIEW_WIDTH = 1920;
     private static final int MAX_PREVIEW_HEIGHT = 1080;
+
+    /* Affectiva SDK methods */
+    private CameraDetector.CameraType cameraType;
+    private CameraDetector detector = null;
 
     private final CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -323,7 +329,12 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         } else {
             cameraView.setSurfaceTextureListener(surfaceTextureListener);
         }
+        initializeCameraDetector();
         super.onResume();
+    }
+
+    private void initializeCameraDetector() {
+        detector = new CameraDetector(this, cameraType, cameraView, 1, Detector.FaceDetectorMode.LARGE_FACES);
     }
 
     private void updateEmotion() {
@@ -541,6 +552,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
                     cameraCharacteristics = cc;
                     frontCameraID = cameraID;
+                    cameraType = CameraDetector.CameraType.CAMERA_FRONT;
                     frontFacing = true;
                 }
             }

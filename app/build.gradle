@@ -38,4 +38,5 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
     compile 'com.jakewharton.timber:timber:4.5.1'
     compile 'com.google.android.gms:play-services-location:11.0.1'
+    compile 'com.affectiva.android:affdexsdk:3.2'
 }
