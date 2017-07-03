@@ -2,4 +2,5 @@
 <resources>
     <dimen name="skip_login_text_size">12sp</dimen>
     <dimen name="vertical_default_margin">8dp</dimen>
+    <dimen name="app_widget_margin">16dp</dimen>
 </resources>
