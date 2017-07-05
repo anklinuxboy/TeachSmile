@@ -10,6 +10,10 @@ import android.widget.RemoteViews;
 import com.developer.ankit.teachsmile.R;
 
 public class TeachSmileWidgetProvider extends AppWidgetProvider {
+
+    public static final String TOAST_ACTION = "toast_action";
+    public static final String EXTRA_ITEM = "extra_item";
+
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
