@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -246,7 +247,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     @OnClick(R.id.take_photo)
     public void takePhotoClicked() {
-        //captureView.requestBitmap();
 
         if (recentFrame == null) {
             showToast(getString(R.string.frame_undetected));
@@ -254,6 +254,10 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         }
 
         Bitmap faceBitmap = ImageSaver.getBitmapFromFrame(recentFrame);
+        Matrix matrix = new Matrix();
+        matrix.setRotate(90);
+
+        faceBitmap = Bitmap.createBitmap(faceBitmap, 0, 0, faceBitmap.getWidth(), faceBitmap.getHeight(), matrix, true);
 
         if (faceBitmap == null) {
             Timber.e( "Unable to generate bitmap for frame, aborting screenshot");
