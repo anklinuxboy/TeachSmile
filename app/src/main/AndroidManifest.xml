@@ -15,7 +15,6 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
@@ -39,6 +38,12 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:authorities="com.developer.ankit.teachsmile.app.data"
+            android:name=".app.data.TeachSmileContentProvider"
+            android:exported="false"
+            android:grantUriPermissions="true"/>
 
         <activity android:name=".app.Settings.SettingsActivity" />
     </application>
