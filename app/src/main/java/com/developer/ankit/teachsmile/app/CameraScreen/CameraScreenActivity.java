@@ -8,10 +8,10 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -34,6 +34,7 @@ import com.developer.ankit.teachsmile.app.Settings.SettingsActivity;
 import com.developer.ankit.teachsmile.app.Utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import butterknife.BindView;
@@ -46,8 +47,7 @@ import static android.graphics.Color.WHITE;
 
 public class CameraScreenActivity extends Activity implements CameraScreenInterface.View,
                     ActivityCompat.OnRequestPermissionsResultCallback, Detector.FaceListener,
-                                    Detector.ImageListener, CameraDetector.CameraEventListener,
-        CaptureView.CaptureThreadListener {
+                    Detector.ImageListener, CameraDetector.CameraEventListener {
 
     private static final String USER_NAME = "user_name";
     private static final String USER_LOCATION = "user_location";
@@ -71,8 +71,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     DrawerLayout drawerLayout;
     @BindView(R.id.side_navigation)
     ListView sideNavigation;
-    @BindView(R.id.capture_view)
-    CaptureView captureView;
 
     private final String EMOTION_PREF_KEY = "emotion_selection";
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -130,7 +128,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         presenter.setView(this);
         sideNavigation.setAdapter(new ArrayAdapter<>(this, R.layout.side_navigation_layout,
                 R.id.side_navigation_element, new String[]{name, location}));
-        captureView.setEventListener(this);
+        //captureView.setEventListener(this);
         initializeCameraDetector();
     }
 
@@ -248,10 +246,37 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     @OnClick(R.id.take_photo)
     public void takePhotoClicked() {
-        Rect frame = cameraView.getHolder().getSurfaceFrame();
+        //captureView.requestBitmap();
+
+        if (recentFrame == null) {
+            showToast(getString(R.string.frame_undetected));
+            return;
+        }
+
+        Bitmap faceBitmap = ImageSaver.getBitmapFromFrame(recentFrame);
+
+        if (faceBitmap == null) {
+            Timber.e( "Unable to generate bitmap for frame, aborting screenshot");
+            return;
+        }
+
+        Bitmap finalScreenshot = Bitmap.createBitmap(faceBitmap.getWidth(), faceBitmap.getHeight(),
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(finalScreenshot);
+        Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+        canvas.drawBitmap(faceBitmap, 0, 0,paint);
+        canvas.rotate(90);
 
         cameraFile = Utils.getFile();
         Timber.d("Got new file " + cameraFile.getAbsolutePath());
+        try {
+            ImageSaver.saveBitmapToFile(finalScreenshot, cameraFile);
+        } catch (IOException e) {
+            Timber.e("Cannot save screenshot");
+        }
+
+        faceBitmap.recycle();
+        finalScreenshot.recycle();
     }
 
     @Override
@@ -260,18 +285,13 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     }
 
     @Override
-    public void onFaceDetectionStarted() {
-
-    }
+    public void onFaceDetectionStarted() {}
 
     @Override
-    public void onFaceDetectionStopped() {
-
-    }
+    public void onFaceDetectionStopped() {}
 
     @Override
     public void onImageResults(List<Face> faces, Frame frame, float v) {
-        recentFrame = frame;
 
         if (faces == null) {
             return;
@@ -286,12 +306,15 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
             Timber.d("Joy %s Anger %s Surprise %s", joy, anger, surprise);
 
             if (emotionPref.equals(JOY) && joy > MAX_JOY_VALUE) {
+                recentFrame = frame;
                 takePhotoButton.setClickable(true);
                 takePhotoButton.setBackgroundTintList(ColorStateList.valueOf(GREEN));
             } else if (emotionPref.equals(ANGER) && anger > MAX_EMOTION_VALUE) {
+                recentFrame = frame;
                 takePhotoButton.setClickable(true);
                 takePhotoButton.setBackgroundTintList(ColorStateList.valueOf(GREEN));
             } else if (emotionPref.equals(SURPRISE) && surprise > MAX_EMOTION_VALUE) {
+                recentFrame = frame;
                 takePhotoButton.setClickable(true);
                 takePhotoButton.setBackgroundTintList(ColorStateList.valueOf(GREEN));
             } else {
@@ -299,19 +322,5 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
                 takePhotoButton.setBackgroundTintList(ColorStateList.valueOf(WHITE));
             }
         }
-    }
-
-    @Override
-    public void onBitmapGenerated(@NonNull final Bitmap bitmap) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                processScreenshot(bitmap);
-            }
-        });
-    }
-
-    private void processScreenshot(Bitmap bitmap) {
-
     }
 }

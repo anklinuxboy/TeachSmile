@@ -15,11 +15,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
 
-        <com.developer.ankit.teachsmile.app.CameraScreen.CaptureView
-            android:id="@+id/capture_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/take_photo"
             android:src="@drawable/take_photo_icon"

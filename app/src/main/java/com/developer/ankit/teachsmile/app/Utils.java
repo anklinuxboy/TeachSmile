@@ -17,7 +17,7 @@ public class Utils {
     public static String PATH_TO_DIR = Environment.getExternalStorageDirectory() + File.separator + EXTERNAL_DIR_NAME;
 
     private static String getFileName() {
-        String EXTENSION = ".jpg";
+        String EXTENSION = ".png";
         String HEADER = "IMG";
         Calendar c = Calendar.getInstance();
         SimpleDateFormat df = new SimpleDateFormat("yy-MM-dd_HH:mm:ss", Locale.US);
@@ -26,12 +26,15 @@ public class Utils {
     }
 
     public static File getFile() {
-        File file = new File(Environment.getExternalStoragePublicDirectory(PATH_TO_DIR), getFileName());
+        File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), EXTERNAL_DIR_NAME);
 
-        if (!file.exists()) {
-            file.mkdirs();
+        if (!folder.exists()) {
+            folder.mkdirs();
         }
 
-        return file;
+        String fileName = getFileName();
+        File screenShotFile = new File(folder, fileName);
+
+        return screenShotFile;
     }
 }
