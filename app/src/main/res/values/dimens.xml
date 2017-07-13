@@ -4,4 +4,5 @@
     <dimen name="vertical_default_margin">8dp</dimen>
     <dimen name="camera_screen_bottom_margin">16dp</dimen>
     <dimen name="camera_screen_horizontal_margin">8dp</dimen>
+    <dimen name="app_widget_margin">16dp</dimen>
 </resources>
