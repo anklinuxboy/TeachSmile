@@ -6,8 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -37,15 +41,21 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import timber.log.Timber;
 
+import static android.graphics.Color.GREEN;
+import static android.graphics.Color.WHITE;
+
 public class CameraScreenActivity extends Activity implements CameraScreenInterface.View,
                     ActivityCompat.OnRequestPermissionsResultCallback, Detector.FaceListener,
-                                    Detector.ImageListener, CameraDetector.CameraEventListener{
+                                    Detector.ImageListener, CameraDetector.CameraEventListener,
+        CaptureView.CaptureThreadListener {
 
     private static final String USER_NAME = "user_name";
     private static final String USER_LOCATION = "user_location";
     private static final String JOY = "Joy";
-    private static final String SURPISE = "Surprise";
-    private static final String SADNESS = "Sad";
+    private static final String SURPRISE = "Surprise";
+    private static final String ANGER = "Anger";
+    private static final float MAX_EMOTION_VALUE = 20.0f;
+    private static final float MAX_JOY_VALUE = 80.0f;
 
     @BindView(R.id.camera_view)
     SurfaceView cameraView;
@@ -61,6 +71,8 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     DrawerLayout drawerLayout;
     @BindView(R.id.side_navigation)
     ListView sideNavigation;
+    @BindView(R.id.capture_view)
+    CaptureView captureView;
 
     private final String EMOTION_PREF_KEY = "emotion_selection";
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -118,6 +130,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         presenter.setView(this);
         sideNavigation.setAdapter(new ArrayAdapter<>(this, R.layout.side_navigation_layout,
                 R.id.side_navigation_element, new String[]{name, location}));
+        captureView.setEventListener(this);
         initializeCameraDetector();
     }
 
@@ -135,19 +148,19 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
                 Timber.d("Detect Joy");
                 detector.setDetectJoy(true);
                 detector.setDetectSurprise(false);
-                detector.setDetectSadness(false);
+                detector.setDetectAnger(false);
                 break;
-            case SURPISE:
+            case SURPRISE:
                 Timber.d("Detect Surprise");
                 detector.setDetectJoy(false);
                 detector.setDetectSurprise(true);
-                detector.setDetectSadness(false);
+                detector.setDetectAnger(false);
                 break;
-            case SADNESS:
+            case ANGER:
                 Timber.d("Detect Sadness");
                 detector.setDetectJoy(false);
                 detector.setDetectSurprise(false);
-                detector.setDetectSadness(true);
+                detector.setDetectAnger(true);
                 break;
         }
     }
@@ -193,8 +206,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         super.onPause();
     }
 
-
-
     @Override
     public void askPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
@@ -237,6 +248,8 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     @OnClick(R.id.take_photo)
     public void takePhotoClicked() {
+        Rect frame = cameraView.getHolder().getSurfaceFrame();
+
         cameraFile = Utils.getFile();
         Timber.d("Got new file " + cameraFile.getAbsolutePath());
     }
@@ -267,10 +280,38 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         if (faces.size() == 1) {
             Face face = faces.get(0);
             float joy = face.emotions.getJoy();
-            float sadness = face.emotions.getSadness();
+            float anger = face.emotions.getAnger();
             float surprise = face.emotions.getSurprise();
 
-            Timber.d("Joy %s Sad %s Surprise %s", joy, sadness, surprise);
+            Timber.d("Joy %s Anger %s Surprise %s", joy, anger, surprise);
+
+            if (emotionPref.equals(JOY) && joy > MAX_JOY_VALUE) {
+                takePhotoButton.setClickable(true);
+                takePhotoButton.setBackgroundTintList(ColorStateList.valueOf(GREEN));
+            } else if (emotionPref.equals(ANGER) && anger > MAX_EMOTION_VALUE) {
+                takePhotoButton.setClickable(true);
+                takePhotoButton.setBackgroundTintList(ColorStateList.valueOf(GREEN));
+            } else if (emotionPref.equals(SURPRISE) && surprise > MAX_EMOTION_VALUE) {
+                takePhotoButton.setClickable(true);
+                takePhotoButton.setBackgroundTintList(ColorStateList.valueOf(GREEN));
+            } else {
+                takePhotoButton.setClickable(false);
+                takePhotoButton.setBackgroundTintList(ColorStateList.valueOf(WHITE));
+            }
         }
+    }
+
+    @Override
+    public void onBitmapGenerated(@NonNull final Bitmap bitmap) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                processScreenshot(bitmap);
+            }
+        });
+    }
+
+    private void processScreenshot(Bitmap bitmap) {
+
     }
 }

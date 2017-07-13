@@ -2,7 +2,7 @@
 <resources>
     <string-array name="emotions">
         <item>Joy</item>
-        <item>Sad</item>
+        <item>Anger</item>
         <item>Surprise</item>
     </string-array>
 </resources>
