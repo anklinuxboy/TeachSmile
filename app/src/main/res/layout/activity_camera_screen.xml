@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <SurfaceView
+            android:id="@+id/camera_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/take_photo"
+            android:src="@drawable/take_photo_icon"
+            app:backgroundTint="@color/take_photo_fab"
+            app:fabSize="mini"
+            android:clickable="false"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="@dimen/camera_screen_bottom_margin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <ImageButton
+            android:id="@+id/photo_gallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/photo_gallery"
+            android:tint="@color/camera_screen_icons"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="@dimen/camera_screen_bottom_margin"
+            android:layout_marginStart="@dimen/camera_screen_horizontal_margin"
+            android:contentDescription="@string/open_photo_gallery"
+            android:background="@null"/>
+
+        <ImageButton
+            android:id="@+id/open_profile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/account_icon"
+            android:tint="@color/camera_screen_icons"
+            android:layout_marginStart="@dimen/camera_screen_horizontal_margin"
+            android:layout_marginTop="@dimen/vertical_default_margin"
+            android:contentDescription="@string/open_profile"
+            android:background="@null"/>
+
+        <ImageButton
+            android:id="@+id/settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/settings"
+            android:layout_gravity="end"
+            android:tint="@color/camera_screen_icons"
+            android:layout_marginTop="@dimen/vertical_default_margin"
+            android:layout_marginEnd="@dimen/camera_screen_horizontal_margin"
+            android:contentDescription="@string/open_settings"
+            android:background="@null"/>
+
+    </FrameLayout>
+
+    <ListView
+        android:id="@+id/side_navigation"
+        android:layout_width="240dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@color/login_screen_background"/>
+</android.support.v4.widget.DrawerLayout>
+

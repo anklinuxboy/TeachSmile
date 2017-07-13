@@ -5,4 +5,6 @@
     <color name="colorAccent">#FF4081</color>
     <color name="login_screen_background">#b2dfdb</color>
     <color name="skip_text_color">#004d40</color>
+    <color name="take_photo_fab">#BDBDBD</color>
+    <color name="camera_screen_icons">#9C27B0</color>
 </resources>
