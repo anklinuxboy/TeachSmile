@@ -10,14 +10,6 @@ public final class DatabaseContract {
 
     public static class DatabaseEntry implements BaseColumns {
 
-        public static final Uri CONTENT_URI = Uri.withAppendedPath(DatabaseContract.CONTENT_URI,
-                "images");
-
-        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "photo";
-
-        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE +
-                "photo";
-
         public static final String TABLE_NAME = "entries";
         public static final String COLUMN_NAME_IMAGE_NAME = "name";
         public static final String COLUMN_NAME_EMOTION = "emotion";
@@ -38,5 +30,13 @@ public final class DatabaseContract {
 
     public static final String AUTHORITY = "com.developer.ankit.teachsmile.app.data";
 
-    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+    public static final Uri BASE_URI = Uri.parse("content://" + AUTHORITY);
+
+    public static final String PATH_IMAGES = "images";
+
+    public static final Uri CONTENT_URI = BASE_URI.buildUpon().appendPath(PATH_IMAGES).build();
+
+    public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + AUTHORITY + "/" + PATH_IMAGES;
+
+    public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + AUTHORITY + "/" + PATH_IMAGES;
 }

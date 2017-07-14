@@ -67,9 +67,9 @@ public class TeachSmileContentProvider extends ContentProvider {
     public String getType(@NonNull Uri uri) {
         switch (URI_MATCHER.match(uri)) {
             case ITEM_LIST:
-                return DatabaseContract.DatabaseEntry.CONTENT_TYPE;
+                return DatabaseContract.CONTENT_TYPE;
             case ITEM_ID:
-                return DatabaseContract.DatabaseEntry.CONTENT_ITEM_TYPE;
+                return DatabaseContract.CONTENT_ITEM_TYPE;
             default:
                 return null;
         }

@@ -3,11 +3,13 @@ package com.developer.ankit.teachsmile.app.Widget;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import com.developer.ankit.teachsmile.R;
+import com.developer.ankit.teachsmile.app.data.DatabaseContract;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +33,22 @@ public class TeachSmileWidgetService extends RemoteViewsService {
 
         @Override
         public void onCreate() {
+            Cursor cursor = context.getContentResolver().query(DatabaseContract.CONTENT_URI,
+                    new String[]{DatabaseContract.DatabaseEntry.COLUMN_NAME_EMOTION},
+                    null,
+                    null,
+                    null);
+            if (cursor != null) {
+                int happyImages = 0;
+                int angryImages = 0;
+                int surpriseImages = 0;
 
+                while (cursor.moveToNext()) {
+                    System.out.println(cursor.getString(0));
+                }
+
+                widgetItemList.add(new WidgetItem("Hello", 3));
+            }
         }
 
         @Override

@@ -2,6 +2,7 @@ package com.developer.ankit.teachsmile.app.CameraScreen;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
@@ -33,6 +35,7 @@ import com.affectiva.android.affdex.sdk.detector.Face;
 import com.developer.ankit.teachsmile.R;
 import com.developer.ankit.teachsmile.app.Settings.SettingsActivity;
 import com.developer.ankit.teachsmile.app.Utils;
+import com.developer.ankit.teachsmile.app.data.DatabaseContract;
 
 import java.io.File;
 import java.io.IOException;
@@ -279,14 +282,16 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
             Timber.e("Cannot save screenshot");
         }
 
+        String[] imageNameTokens = cameraFile.getAbsolutePath().split("/");
+
+        new SaveValuesToDB().execute(imageNameTokens[imageNameTokens.length-1], emotionPref, cameraFile.getAbsolutePath());
+
         faceBitmap.recycle();
         finalScreenshot.recycle();
     }
 
     @Override
-    public void onCameraSizeSelected(int i, int i1, Frame.ROTATE rotate) {
-
-    }
+    public void onCameraSizeSelected(int i, int i1, Frame.ROTATE rotate) {}
 
     @Override
     public void onFaceDetectionStarted() {}
@@ -325,6 +330,24 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
                 takePhotoButton.setClickable(false);
                 takePhotoButton.setBackgroundTintList(ColorStateList.valueOf(WHITE));
             }
+        }
+    }
+
+    private class SaveValuesToDB extends AsyncTask<String, Void, Void> {
+
+        protected Void doInBackground(String... params) {
+            String imageName = params[0];
+            String emotion = params[1];
+            String imagePath = params[2];
+
+            ContentValues values = new ContentValues();
+            values.put(DatabaseContract.DatabaseEntry.COLUMN_NAME_IMAGE_NAME, imageName);
+            values.put(DatabaseContract.DatabaseEntry.COLUMN_NAME_EMOTION, emotion);
+            values.put(DatabaseContract.DatabaseEntry.COLUMN_NAME_IMAGE_PATH, imagePath);
+
+            getContentResolver().insert(DatabaseContract.CONTENT_URI, values);
+            Timber.d(getString(R.string.values_saved));
+            return null;
         }
     }
 }
