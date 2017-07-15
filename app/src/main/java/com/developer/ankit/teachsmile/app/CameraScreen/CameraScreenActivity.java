@@ -129,7 +129,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         presenter.setView(this);
         sideNavigation.setAdapter(new ArrayAdapter<>(this, R.layout.side_navigation_layout,
                 R.id.side_navigation_element, new String[]{name, location}));
-        //captureView.setEventListener(this);
         initializeCameraDetector();
     }
 
@@ -277,10 +276,12 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
             ImageSaver.saveBitmapToFile(finalScreenshot, cameraFile);
         } catch (IOException e) {
             Timber.e("Cannot save screenshot");
+            return;
         }
 
         faceBitmap.recycle();
         finalScreenshot.recycle();
+        showToast(cameraFile.toString() + " " + getString(R.string.image_saved));
     }
 
     @Override
