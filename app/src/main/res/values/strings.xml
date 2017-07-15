@@ -13,4 +13,5 @@
     <string name="location_required">Location Permission not given. App will not work as intended</string>
     <string name="frame_undetected">Frame not detected</string>
     <string name="values_saved">Values Saved in DB</string>
+    <string name="image_saved">Saved</string>
 </resources>
