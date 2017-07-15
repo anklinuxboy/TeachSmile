@@ -36,6 +36,7 @@ import com.developer.ankit.teachsmile.R;
 import com.developer.ankit.teachsmile.app.Settings.SettingsActivity;
 import com.developer.ankit.teachsmile.app.Utils;
 import com.developer.ankit.teachsmile.app.data.DatabaseContract;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +61,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     public static final String ANGER = "Anger";
     private static final float MAX_EMOTION_VALUE = 20.0f;
     private static final float MAX_JOY_VALUE = 80.0f;
+    private FirebaseAnalytics mFirebaseAnalytics;
 
     @BindView(R.id.camera_view)
     SurfaceView cameraView;
@@ -125,6 +127,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_screen);
         ButterKnife.bind(this);
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
         Intent intent = getIntent();
         String name = intent.getStringExtra(USER_NAME);
         String location = intent.getStringExtra(USER_LOCATION);
@@ -292,6 +295,11 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         faceBitmap.recycle();
         finalScreenshot.recycle();
         showToast(cameraFile.toString() + " " + getString(R.string.image_saved));
+
+        Bundle bundle = new Bundle();
+        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, Integer.toString(takePhotoButton.getId()));
+        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, takePhotoButton.toString());
+        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
     }
 
     @Override

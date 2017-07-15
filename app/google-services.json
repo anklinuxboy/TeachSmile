@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "673124564030",
+    "firebase_url": "https://teachsmile-396e3.firebaseio.com",
+    "project_id": "teachsmile-396e3",
+    "storage_bucket": "teachsmile-396e3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673124564030:android:9b91f680273cfe1b",
+        "android_client_info": {
+          "package_name": "com.developer.ankit.teachsmile.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "673124564030-nqebmtmrkhp1qp2hchuepgmuehtuk5te.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.developer.ankit.teachsmile.debug",
+            "certificate_hash": "795789d9c020f10f0e500560d22152be78d65e7a"
+          }
+        },
+        {
+          "client_id": "673124564030-4f3ut4d4898crv0nbhd79n5id92nmkmi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsWS0Z1Yq3terqvDQuBuGd0hr72luzN0o"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "673124564030-4f3ut4d4898crv0nbhd79n5id92nmkmi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
