@@ -14,6 +14,12 @@ import com.developer.ankit.teachsmile.app.data.DatabaseContract;
 import java.util.ArrayList;
 import java.util.List;
 
+import timber.log.Timber;
+
+import static com.developer.ankit.teachsmile.app.CameraScreen.CameraScreenActivity.ANGER;
+import static com.developer.ankit.teachsmile.app.CameraScreen.CameraScreenActivity.JOY;
+import static com.developer.ankit.teachsmile.app.CameraScreen.CameraScreenActivity.SURPRISE;
+
 public class TeachSmileWidgetService extends RemoteViewsService {
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
@@ -44,10 +50,26 @@ public class TeachSmileWidgetService extends RemoteViewsService {
                 int surpriseImages = 0;
 
                 while (cursor.moveToNext()) {
-                    System.out.println(cursor.getString(0));
+                    switch(cursor.getString(0)) {
+                        case JOY:
+                            happyImages++;
+                            break;
+                        case SURPRISE:
+                            surpriseImages++;
+                            break;
+                        case ANGER:
+                            angryImages++;
+                            break;
+                        default:
+                            break;
+                    }
                 }
 
-                widgetItemList.add(new WidgetItem("Hello", 3));
+                cursor.close();
+
+                widgetItemList.add(new WidgetItem(JOY, happyImages));
+                widgetItemList.add(new WidgetItem(ANGER, angryImages));
+                widgetItemList.add(new WidgetItem(SURPRISE, surpriseImages));
             }
         }
 

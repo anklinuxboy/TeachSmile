@@ -55,9 +55,9 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     private static final String USER_NAME = "user_name";
     private static final String USER_LOCATION = "user_location";
-    private static final String JOY = "Joy";
-    private static final String SURPRISE = "Surprise";
-    private static final String ANGER = "Anger";
+    public static final String JOY = "Joy";
+    public static final String SURPRISE = "Surprise";
+    public static final String ANGER = "Anger";
     private static final float MAX_EMOTION_VALUE = 20.0f;
     private static final float MAX_JOY_VALUE = 80.0f;
 
@@ -225,7 +225,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED
                         && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                    //presenter.startCamera();
                 } else {
                     Toast.makeText(this, getString(R.string.permission_required), Toast.LENGTH_SHORT)
                             .show();
@@ -245,6 +244,11 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     @OnClick(R.id.open_profile)
     public void profileButtonClicked() {
         drawerLayout.openDrawer(Gravity.START);
+    }
+
+    @OnClick(R.id.photo_gallery)
+    public void photoGalleryButtonClicked() {
+        showToast("Not required for this project. Will be added in a future release");
     }
 
     @OnClick(R.id.take_photo)
@@ -271,7 +275,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         Canvas canvas = new Canvas(finalScreenshot);
         Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
         canvas.drawBitmap(faceBitmap, 0, 0,paint);
-        canvas.rotate(90);
 
         cameraFile = Utils.getFile();
         Timber.d("Got new file " + cameraFile.getAbsolutePath());

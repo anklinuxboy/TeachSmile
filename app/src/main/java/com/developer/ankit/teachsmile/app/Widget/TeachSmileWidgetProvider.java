@@ -1,5 +1,6 @@
 package com.developer.ankit.teachsmile.app.Widget;
 
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
@@ -33,7 +34,7 @@ public class TeachSmileWidgetProvider extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager,
                          int[] appWidgetIds) {
         for (int i = 0; i < appWidgetIds.length; i++) {
-            Intent intent = new Intent(context, TeachSmileWidgetProvider.class);
+            Intent intent = new Intent(context, TeachSmileWidgetService.class);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
             intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
 
@@ -42,7 +43,16 @@ public class TeachSmileWidgetProvider extends AppWidgetProvider {
 
             remoteViews.setRemoteAdapter(appWidgetIds[i], R.id.widget_list, intent);
 
+            Intent toastIntent = new Intent(context, TeachSmileWidgetProvider.class);
+            toastIntent.setAction(TeachSmileWidgetProvider.TOAST_ACTION);
+            toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
 
+            toastIntent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+            remoteViews.setPendingIntentTemplate(R.id.widget_list, pendingIntent);
+            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds[i], R.id.widget_list);
+            appWidgetManager.updateAppWidget(appWidgetIds[i], remoteViews);
         }
 
         super.onUpdate(context, appWidgetManager, appWidgetIds);

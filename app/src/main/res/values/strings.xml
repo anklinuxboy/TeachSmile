@@ -14,4 +14,5 @@
     <string name="frame_undetected">Frame not detected</string>
     <string name="values_saved">Values Saved in DB</string>
     <string name="image_saved">Saved</string>
+    <string name="take_photo">Take Photo</string>
 </resources>

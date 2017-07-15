@@ -18,7 +18,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
-        <activity android:name=".app.Login.LoginActivity">
+        <activity android:name=".app.Login.LoginActivity"
+            android:icon="@mipmap/ic_launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -47,13 +48,16 @@
 
         <activity android:name=".app.Settings.SettingsActivity" />
 
-        <receiver android:name="TeachSmileWidgetProvider" >
+        <receiver android:name=".app.Widget.TeachSmileWidgetProvider" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/teachsmile_appwidget_info" />
         </receiver>
+
+        <service android:name=".app.Widget.TeachSmileWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"/>
     </application>
 
 </manifest>

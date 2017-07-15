@@ -64,7 +64,20 @@ public class LoginActivity extends AppCompatActivity implements LoginInterface.V
         ButterKnife.bind(this);
         presenter = new LoginPresenter();
         presenter.setView(this);
+        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        getLastKnownLocation();
+
+        profileTracker = new ProfileTracker() {
+            @Override
+            protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                userName = currentProfile.getName();
+                Timber.d("user name " + userName);
+                startActivity(CameraScreenActivity.startCameraScreen(getBaseContext(), userName, userLocation));
+            }
+        };
+
         checkIfUserLoggedIn();
+
         callbackManager = CallbackManager.Factory.create();
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
         loginButton.setReadPermissions("email");
@@ -73,30 +86,19 @@ public class LoginActivity extends AppCompatActivity implements LoginInterface.V
             public void onSuccess(LoginResult loginResult) {
                 isUserLoggedIn = true;
                 saveLoginState(isUserLoggedIn);
-                startActivity(CameraScreenActivity.startCameraScreen(getBaseContext(), userName, userLocation));
             }
 
             @Override
             public void onCancel() {
-
+                isUserLoggedIn = false;
             }
 
             @Override
             public void onError(FacebookException error) {
-                Log.d("TAG", "Login Error");
+                isUserLoggedIn = false;
+                Timber.e("Login Error");
             }
         });
-
-        profileTracker = new ProfileTracker() {
-            @Override
-            protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                userName = currentProfile.getName();
-                Timber.d(userName);
-            }
-        };
-
-        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        getLastKnownLocation();
     }
 
     @Override
@@ -115,6 +117,9 @@ public class LoginActivity extends AppCompatActivity implements LoginInterface.V
                     }
                 }
             });
+        } else {
+            Toast.makeText(this, getString(R.string.permission_required), Toast.LENGTH_SHORT).show();
+            this.finish();
         }
     }
 

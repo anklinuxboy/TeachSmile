@@ -23,6 +23,7 @@
             android:clickable="false"
             android:layout_gravity="bottom|center_horizontal"
             android:layout_marginBottom="@dimen/camera_screen_bottom_margin"
+            android:contentDescription="@string/take_photo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
