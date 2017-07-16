@@ -118,8 +118,7 @@ public class LoginActivity extends AppCompatActivity implements LoginInterface.V
                 }
             });
         } else {
-            Toast.makeText(this, getString(R.string.permission_required), Toast.LENGTH_SHORT).show();
-            this.finish();
+
         }
     }
 

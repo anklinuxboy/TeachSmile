@@ -36,6 +36,7 @@ import com.developer.ankit.teachsmile.R;
 import com.developer.ankit.teachsmile.app.Settings.SettingsActivity;
 import com.developer.ankit.teachsmile.app.Utils;
 import com.developer.ankit.teachsmile.app.data.DatabaseContract;
+import com.developer.ankit.teachsmile.app.images.ImageViewer;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
@@ -251,7 +252,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
     @OnClick(R.id.photo_gallery)
     public void photoGalleryButtonClicked() {
-        showToast("Not required for this project. Will be added in a future release");
+        startActivity(ImageViewer.startImageViewerActivity(this));
     }
 
     @OnClick(R.id.take_photo)
@@ -263,10 +264,6 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
         }
 
         Bitmap faceBitmap = ImageSaver.getBitmapFromFrame(recentFrame);
-        Matrix matrix = new Matrix();
-        matrix.setRotate(90);
-
-        faceBitmap = Bitmap.createBitmap(faceBitmap, 0, 0, faceBitmap.getWidth(), faceBitmap.getHeight(), matrix, true);
 
         if (faceBitmap == null) {
             Timber.e( "Unable to generate bitmap for frame, aborting screenshot");
@@ -290,8 +287,9 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
 
         String[] imageNameTokens = cameraFile.getAbsolutePath().split("/");
 
+        Timber.d("after");
         new SaveValuesToDB().execute(imageNameTokens[imageNameTokens.length-1], emotionPref, cameraFile.getAbsolutePath());
-
+        Timber.d("afte");
         faceBitmap.recycle();
         finalScreenshot.recycle();
         showToast(cameraFile.toString() + " " + getString(R.string.image_saved));
@@ -348,6 +346,7 @@ public class CameraScreenActivity extends Activity implements CameraScreenInterf
     private class SaveValuesToDB extends AsyncTask<String, Void, Void> {
 
         protected Void doInBackground(String... params) {
+            Timber.d("in do background");
             String imageName = params[0];
             String emotion = params[1];
             String imagePath = params[2];

@@ -29,7 +29,7 @@ public final class DatabaseContract {
 
     public static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS " + DatabaseEntry.TABLE_NAME;
 
-    public static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".provider";
+    public static final String AUTHORITY = "com.developer.ankit.teachsmile.app.data.provider";
 
     public static final Uri BASE_URI = Uri.parse("content://" + AUTHORITY);
 

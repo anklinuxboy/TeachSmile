@@ -41,13 +41,15 @@
         </activity>
 
         <provider
-            android:authorities="${applicationId}.provider"
+            android:authorities="com.developer.ankit.teachsmile.app.data.provider"
             android:name=".app.data.TeachSmileContentProvider"
             android:enabled="true"
             android:exported="false"
             android:grantUriPermissions="true"/>
 
         <activity android:name=".app.Settings.SettingsActivity" />
+
+        <activity android:name=".app.images.ImageViewer" />
 
         <receiver android:name=".app.Widget.TeachSmileWidgetProvider" >
             <intent-filter>
