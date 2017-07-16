@@ -6,7 +6,7 @@ android {
         config {
             keyAlias 'teachsmile'
             keyPassword 'password'
-            storeFile file('$rootDir/keystore.jks')
+            storeFile file("$rootDir/keystore.jks")
             storePassword 'password'
         }
     }

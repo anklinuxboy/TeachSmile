@@ -41,8 +41,9 @@
         </activity>
 
         <provider
-            android:authorities="com.developer.ankit.teachsmile.app.data"
+            android:authorities="${applicationId}.provider"
             android:name=".app.data.TeachSmileContentProvider"
+            android:enabled="true"
             android:exported="false"
             android:grantUriPermissions="true"/>
 

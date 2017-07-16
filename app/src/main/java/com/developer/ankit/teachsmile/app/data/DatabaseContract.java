@@ -3,6 +3,7 @@ package com.developer.ankit.teachsmile.app.data;
 import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.compat.BuildConfig;
 
 public final class DatabaseContract {
 
@@ -28,7 +29,7 @@ public final class DatabaseContract {
 
     public static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS " + DatabaseEntry.TABLE_NAME;
 
-    public static final String AUTHORITY = "com.developer.ankit.teachsmile.app.data";
+    public static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".provider";
 
     public static final Uri BASE_URI = Uri.parse("content://" + AUTHORITY);
 
